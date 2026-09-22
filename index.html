@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Thick Birthday Book</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f7a8c4;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Comic Sans MS', 'Segoe UI', sans-serif;
+            overflow: hidden;
+            perspective: 1200px;
+        }
+
+        /* KAMERA ANGLE */
+        .camera-viewport {
+            transform-style: preserve-3d;
+            transform: rotateX(20deg) rotateY(-25deg) scale(0.85);
+            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* CONTAINER BUKU */
+        .book {
+            position: relative;
+            width: 300px;
+            height: 420px;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        /* LEMBARAN COVER TERMASUK SISI SAMPUL */
+        .cover-leaf {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 3;
+        }
+
+        /* Sampul Luar (Depan) */
+        .cover-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 
+                1px 1px 0px #e0e0e0,
+                2px 2px 0px #d5d5d5,
+                3px 3px 0px #ccc,
+                4px 4px 0px #bbb,
+                5px 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .cover-front h3 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.8rem;
+            color: #2b7a78;
+            margin-bottom: 10px;
+        }
+
+        .cover-front img {
+            max-width: 80%;
+            height: auto;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        /* Teks badge pembuka */
+        .cover-front p.subtext {
+            font-family: 'Caveat', cursive;
+            font-size: 1.25rem;
+            color: #e05275;
+            font-weight: bold;
+            background: #ffe3ec;
+            padding: 4px 12px;
+            border-radius: 15px;
+            margin-top: 5px;
+        }
+
+        /* Sampul Dalam (Sisi Kiri saat Buku Terbuka) */
+        .cover-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 0 0 8px;
+            box-shadow: inset -15px 0 20px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid #e0e0e0;
+        }
+
+        /* --- LEMBARAN KE-2 (FOTO & HIASAN) --- */
+        .photo-leaf {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 2;
+        }
+
+        .photo-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 
+                1px 1px 0px #e0e0e0,
+                2px 2px 0px #d5d5d5,
+                3px 3px 0px #ccc,
+                4px 4px 0px #bbb,
+                5px 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .photo-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border-radius: 8px 0 0 8px;
+            box-shadow: inset -15px 0 20px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid #e0e0e0;
+        }
+
+        /* BINGKAI FOTO PRESISI DI TENGAH LEMBARAN 2 */
+        .photo-frame {
+            width: 190px;
+            height: 190px;
+            border-radius: 12px;
+            padding: 8px;
+            background: #fff;
+            box-shadow: 0 8px 20px rgba(224, 82, 117, 0.25), 0 0 0 2px #ffe3ec;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: rotate(-2deg);
+            margin: 10px 0;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        /* DEKORASI HIASAN KUE & KADO */
+        .decor-item {
+            position: absolute;
+            font-size: 2.2rem;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.15));
+            animation: float 3s ease-in-out infinite alternate;
+        }
+
+        .decor-cake {
+            top: 20px;
+            left: 20px;
+        }
+
+        .decor-gift-1 {
+            bottom: 20px;
+            left: 20px;
+            animation-delay: 0.5s;
+        }
+
+        .decor-gift-2 {
+            bottom: 20px;
+            right: 20px;
+            animation-delay: 1s;
+        }
+
+        .decor-sparkle {
+            top: 20px;
+            right: 20px;
+            font-size: 1.8rem;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-8px) rotate(6deg); }
+        }
+
+        /* HALAMAN ISI DENGAN EFEK TUMPULAN KERTAS TEBAL */
+        .details-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 25px 20px;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 1;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 
+                inset 15px 0 20px rgba(0, 0, 0, 0.08),
+                1px 1px 0px #e6e6e6,
+                2px 2px 0px #e0e0e0,
+                3px 3px 0px #dadada,
+                4px 4px 0px #d4d4d4,
+                5px 5px 0px #cecece,
+                6px 6px 0px #c8c8c8,
+                7px 7px 0px #c2c2c2,
+                8px 8px 0px #bcbcbc,
+                9px 9px 0px #b6b6b6,
+                10px 10px 0px #b0b0b0,
+                15px 15px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        /* KUSTOMISASI TULISAN TANGAN & KEMIRINGAN DIAGONAL SERAGAM */
+        .details-page h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.8rem;
+            color: #2b7a78;
+            margin-bottom: 2px;
+            transform: rotate(-3deg);
+        }
+
+        .details-page h4 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.4rem;
+            color: #2b7a78;
+            margin-bottom: 10px;
+            transform: rotate(-3deg);
+        }
+
+        .details-page p {
+            font-family: 'Caveat', cursive;
+            font-size: 1.15rem;
+            color: #333;
+            line-height: 1.25;
+            margin-bottom: 2px;
+            transform: rotate(-3deg);
+            transform-origin: left center;
+        }
+
+        .details-page p.text-right {
+            align-self: flex-end;
+            margin-top: 8px;
+            font-weight: bold;
+            font-size: 1.3rem;
+            transform: rotate(-3deg);
+        }
+
+        /* ANGLE KAMERA SAAT BUKU DIBUKA */
+        .camera-viewport.open-1,
+        .camera-viewport.open-2 {
+            transform: rotateX(10deg) rotateY(0deg) scale(1);
+        }
+
+        /* KONTROL PEMBUKAAN LEMBARAN SECARA BERURUTAN */
+        .camera-viewport.open-1 .cover-leaf {
+            transform: rotateY(-180deg);
+        }
+
+        .camera-viewport.open-2 .cover-leaf {
+            transform: rotateY(-180deg);
+        }
+
+        .camera-viewport.open-2 .photo-leaf {
+            transform: rotateY(-180deg);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="camera-viewport" id="bookContainer">
+        <div class="book">
+            
+            <div class="cover-leaf">
+                <div class="cover-front">
+                    <h3>HAPPY BIRTHDAY</h3>
+                    <img src="https://i.imgur.com/j04Qvfi.jpeg" alt="Foto Sampul">
+                    <p class="subtext">Buka Spesial Untukmu 💌</p>
+                </div>
+                <div class="cover-back">
+                    <p style="color: #e05275; font-family: 'Caveat', cursive; font-size: 1.2rem;">
+                        Klik sekali lagi untuk buka lembaran berikutnya ➡️
+                    </p>
+                </div>
+            </div>
+
+            <!-- LEMBARAN KE-2 -->
+            <div class="photo-leaf">
+                <div class="photo-front">
+                    <span class="decor-item decor-cake">🎂</span>
+                    <span class="decor-item decor-sparkle">✨</span>
+                    
+                    <h3 style="font-family: 'Dancing Script', cursive; font-size: 1.6rem; color: #e05275;">Special Moments 💞</h3>
+                    
+                    <div class="photo-frame">
+                        <img src="https://cdn.phototourl.com/free/2026-09-22-93305dbc-9851-4e5a-9502-083e2d0811de.jpg" alt="Foto Lembaran 2">
+                    </div>
+                    
+                    <span class="decor-item decor-gift-1">🎁</span>
+                    <span class="decor-item decor-gift-2">🎈</span>
+                </div>
+                <div class="photo-back">
+                    <p style="color: #888; font-style: italic; font-size: 0.9rem;">
+                        ✨ Sweet Memories ✨
+                    </p>
+                </div>
+            </div>
+
+            <div class="details-page">
+                <h2>HAPPY BIRTHDAY</h2>
+                <h4>SAYANGGG 🫶💞</h4>
+                <p>Selamat ulang tahun Sayanggkuuu 😚,</p>
+                <p>hari ini adalah hari spesialmu.</p>
+                <p>Semoga kamu selalu diberikan kesehatan, kebahagiaan,</p>
+                <p>dan kemudahan dalam segala hal.</p>
+                <p>Terima kasih atas semua momen baik selama ini,</p>
+                <p>aku sangat bersyukur bisa memilikimu seutuhnya.😘</p>
+                <p>Xixixixi,selamatt yahhh ayangg.</p>
+                <p>Sekali lagi,</p>
+                <p>selamat ulang tahun untukmu! 🫶</p>
+                <p class="text-right">- Vinz</p>
+            </div>
+
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="https://mp3tourl.com/audio/1788755463617-91ab3114-b004-4751-9fdb-0de1280150be.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const bookContainer = document.getElementById('bookContainer');
+        const bgMusic = document.getElementById('bgMusic');
+        let currentStep = 0; // Status: 0 = Tertutup, 1 = Buka Cover, 2 = Buka Lembaran Foto
+
+        bookContainer.addEventListener('click', function() {
+            currentStep = (currentStep + 1) % 3;
+
+            if (currentStep === 1) {
+                bookContainer.classList.add('open-1');
+                bookContainer.classList.remove('open-2');
+                bgMusic.play().catch(() => {});
+            } else if (currentStep === 2) {
+                bookContainer.classList.add('open-2');
+            } else {
+                bookContainer.classList.remove('open-1', 'open-2');
+                bgMusic.pause();
+            }
+        });
+    </script>
+
+</body>
+</html>
